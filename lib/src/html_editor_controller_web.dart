@@ -1,4 +1,5 @@
 import 'dart:convert';
+
 // ignore: avoid_web_libraries_in_flutter
 import 'dart:html' as html;
 
@@ -54,6 +55,18 @@ class HtmlEditorController extends unsupported.HtmlEditorController {
   set viewId(String? viewId) => _viewId = viewId;
 
   /// Gets the text from the editor and returns it as a [String].
+  @override
+  Future<HtmlElementInfo> getFirstParentWithTag(String tag) async {
+    _evaluateJavascriptWeb(data: {'type': 'toIframe: getFirstParentWithTag', 'tag': tag});
+    var e = await html.window.onMessage.firstWhere((element) =>
+        json.decode(element.data)['type'] == 'toDart: getFirstParentWithTag');
+    Map response = json.decode(e.data);
+    return HtmlElementInfo(
+      exists: response['exists'] ?? false,
+      attributes: response['attrs'].cast<String, String>(),
+    );
+  }
+
   @override
   Future<String> getText() async {
     _evaluateJavascriptWeb(data: {'type': 'toIframe: getText'});

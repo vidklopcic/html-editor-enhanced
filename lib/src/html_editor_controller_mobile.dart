@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
@@ -153,6 +155,30 @@ class HtmlEditorController extends unsupported.HtmlEditorController {
   void insertText(String text) {
     _evaluateJavascript(
         source: "\$('#summernote-2').summernote('insertText', '$text');");
+  }
+
+  /// Insert text at the end of the current HTML content in the editor
+  /// Note: This method should only be used for plaintext strings
+  @override
+  Future<HtmlElementInfo> getFirstParentWithTag(String tag) async {
+    final responseString = _evaluateJavascript(
+      source: '''(() => {
+                  let closestNode = \$(document.lastFocusNode).closest(data['tag']);
+                  let attrs={};
+                  if (!!closestNode[0]) {
+                    for (var att, i = 0, atts = closestNode[0].attributes, n = atts.length; i < n; i++) {
+                        att = atts[i];
+                        attrs[att.nodeName] = att.nodeValue;
+                    }
+                  }
+                  return JSON.stringify({"type": "toDart: getFirstParentWithTag", "exists": !!closestNode[0], 'attrs': attrs});
+            })()''',
+    );
+    final response = json.decode(responseString);
+    return HtmlElementInfo(
+      exists: response['exists'] ?? false,
+      attributes: response['attrs'].cast<String, String>(),
+    );
   }
 
   /// Insert HTML at the position of the cursor in the editor

@@ -151,4 +151,7 @@ class HtmlEditorController {
   /// Internal function to insert table on Web
   @internal
   void insertTable(String dimensions) {}
+
+  Future<HtmlElementInfo> getFirstParentWithTag(String tag) =>
+      Future.value(HtmlElementInfo());
 }

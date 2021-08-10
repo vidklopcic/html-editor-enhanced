@@ -61,6 +61,8 @@ class EditorSettings {
   bool isAlignJustify;
   double lineHeight;
   TextDirection textDirection;
+  double? anchorOffset;
+  double? focusOffset;
 
   EditorSettings({
     required this.parentElement,
@@ -82,7 +84,16 @@ class EditorSettings {
     required this.isAlignJustify,
     required this.lineHeight,
     required this.textDirection,
+    this.anchorOffset,
+    this.focusOffset,
   });
+}
+
+class HtmlElementInfo {
+  final bool exists;
+  final Map<String, String>? attributes;
+
+  HtmlElementInfo({this.exists = false, this.attributes});
 }
 
 /// Class to create a script that can be run on Flutter Web.
@@ -491,6 +502,7 @@ class _DropdownRouteResult<T> {
 
 class _MenuLimits {
   const _MenuLimits(this.top, this.bottom, this.height, this.scrollOffset);
+
   final double top;
   final double bottom;
   final double height;
@@ -845,6 +857,7 @@ class _DropdownButtonState<T> extends State<CustomDropdownButton<T>>
   _DropdownRoute<T>? _dropdownRoute;
   Orientation? _lastOrientation;
   FocusNode? _internalNode;
+
   FocusNode? get focusNode => widget.focusNode ?? _internalNode;
   bool _hasPrimaryFocus = false;
   late Map<Type, Action<Intent>> _actionMap;

@@ -303,7 +303,8 @@ class ToolbarWidgetState extends State<ToolbarWidget> {
       }
     });
     if (widget.callbacks?.onChangeSelection != null) {
-      widget.callbacks!.onChangeSelection!.call(EditorSettings(
+      widget.callbacks!.onChangeSelection!.call(
+        EditorSettings(
           parentElement: parentElem,
           fontName: fontName,
           fontSize: fontSize,
@@ -323,7 +324,11 @@ class ToolbarWidgetState extends State<ToolbarWidget> {
           isAlignJustify: alignList[3] ?? false,
           lineHeight: _lineHeightSelectedItem,
           textDirection:
-              textDir == 'rtl' ? TextDirection.rtl : TextDirection.ltr));
+              textDir == 'rtl' ? TextDirection.rtl : TextDirection.ltr,
+          anchorOffset: json['anchorOffset'],
+          focusOffset: json['focusOffset'],
+        ),
+      );
     }
   }
 

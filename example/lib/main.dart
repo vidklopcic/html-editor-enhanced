@@ -72,11 +72,14 @@ class _HtmlEditorExampleState extends State<HtmlEditorExample> {
                 htmlEditorOptions: HtmlEditorOptions(
                   hint: 'Your text here...',
                   shouldEnsureVisible: true,
-                  //initialText: "<p>text content initial, if any</p>",
+                  initialText:
+                      '<p><ts s="1.5" e="2.0">word 1</ts> <ts s="2.5" e="3.0">word 2</ts> <ts s="3.5" e="4.0">word 3</ts></p>',
                 ),
                 htmlToolbarOptions: HtmlToolbarOptions(
-                  toolbarPosition: ToolbarPosition.aboveEditor, //by default
-                  toolbarType: ToolbarType.nativeScrollable, //by default
+                  toolbarPosition: ToolbarPosition.aboveEditor,
+                  //by default
+                  toolbarType: ToolbarType.nativeScrollable,
+                  //by default
                   onButtonPressed: (ButtonType type, bool? status,
                       Function()? updateStatus) {
                     print(
@@ -229,6 +232,23 @@ class _HtmlEditorExampleState extends State<HtmlEditorExample> {
                       },
                       child: Text(
                         'Redo',
+                        style: TextStyle(color: Colors.white),
+                      ),
+                    ),
+                    SizedBox(
+                      width: 16,
+                    ),
+                    TextButton(
+                      style: TextButton.styleFrom(
+                          backgroundColor: Theme.of(context).accentColor),
+                      onPressed: () async {
+                        final fp = await controller.getFirstParentWithTag('ts');
+                        print(fp.exists);
+                        print(fp.attributes);
+                        print('-------------');
+                      },
+                      child: Text(
+                        'First Parent Attrs',
                         style: TextStyle(color: Colors.white),
                       ),
                     ),

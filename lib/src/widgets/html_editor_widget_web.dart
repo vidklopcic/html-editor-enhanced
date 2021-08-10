@@ -8,6 +8,7 @@ import 'package:flutter/services.dart';
 import 'package:html_editor_enhanced/html_editor.dart';
 import 'package:html_editor_enhanced/utils/utils.dart';
 import 'package:html_editor_enhanced/src/widgets/toolbar_widget.dart';
+
 // ignore: avoid_web_libraries_in_flutter
 import 'dart:html' as html;
 import 'package:html_editor_enhanced/utils/shims/dart_ui.dart' as ui;
@@ -196,9 +197,11 @@ class _HtmlEditorWidgetWebState extends State<HtmlEditorWidget> {
             window.parent.postMessage(JSON.stringify({"view": "$createdViewId", "type": "toDart: onChangeContent", "contents": contents}), "*");
           });
         });
-       
+        
         window.parent.addEventListener('message', handleMessage, false);
         document.onselectionchange = onSelectionChange;
+        document.lastAnchorNode = null;
+        document.lastFocusNode = null;
         console.log('done');
       
         function handleMessage(e) {
@@ -208,6 +211,17 @@ class _HtmlEditorWidgetWebState extends State<HtmlEditorWidget> {
               if (data["type"].includes("getText")) {
                 var str = \$('#summernote-2').summernote('code');
                 window.parent.postMessage(JSON.stringify({"type": "toDart: getText", "text": str}), "*");
+              }
+              if (data["type"].includes("getFirstParentWithTag")) {
+                let closestNode = \$(document.lastFocusNode).closest(data['tag']);
+                let attrs={};
+                if (!!closestNode[0]) {
+                  for (var att, i = 0, atts = closestNode[0].attributes, n = atts.length; i < n; i++) {
+                      att = atts[i];
+                      attrs[att.nodeName] = att.nodeValue;
+                  }
+                }
+                window.parent.postMessage(JSON.stringify({"type": "toDart: getFirstParentWithTag", "exists": !!closestNode[0], 'attrs': attrs}), "*");
               }
               if (data["type"].includes("getHeight")) {
                 var height = document.body.scrollHeight;
@@ -343,6 +357,8 @@ class _HtmlEditorWidgetWebState extends State<HtmlEditorWidget> {
         
         function onSelectionChange() {
           let {anchorNode, anchorOffset, focusNode, focusOffset} = document.getSelection();
+          document.lastAnchorNode = anchorNode;
+          document.lastFocusNode = focusNode;
           var isBold = false;
           var isItalic = false;
           var isUnderline = false;
@@ -400,6 +416,8 @@ class _HtmlEditorWidgetWebState extends State<HtmlEditorWidget> {
             'align': [isLeft, isCenter, isRight, isFull],
             'lineHeight': lineHeight,
             'direction': direction,
+            'anchorOffset': anchorOffset,
+            'focusOffset': focusOffset,
           };
           window.parent.postMessage(JSON.stringify(message), "*");
         }
@@ -450,9 +468,8 @@ class _HtmlEditorWidgetWebState extends State<HtmlEditorWidget> {
         html.window.postMessage(jsonStr2, '*');
         html.window.onMessage.listen((event) {
           var data = json.decode(event.data);
-          if (data['type'] != null &&
-              data['type'].contains('toDart: onChangeContent') &&
-              data['view'] == createdViewId) {
+          if (data['type'] == null || data['view'] != createdViewId) return;
+          if (data['type'].contains('toDart: onChangeContent')) {
             if (widget.callbacks != null &&
                 widget.callbacks!.onChangeContent != null) {
               widget.callbacks!.onChangeContent!.call(data['contents']);
@@ -465,9 +482,13 @@ class _HtmlEditorWidgetWebState extends State<HtmlEditorWidget> {
                   curve: Curves.easeIn);
             }
           }
-          if (data['type'] != null &&
-              data['type'].contains('toDart: updateToolbar') &&
-              data['view'] == createdViewId) {
+          if (data['type'].contains('toDart: updateSelection')) {
+            if (widget.callbacks != null &&
+                widget.callbacks!.onChangeSelection != null) {
+              widget.callbacks!.onChangeSelection!.call(data['contents']);
+            }
+          }
+          if (data['type'].contains('toDart: updateToolbar')) {
             if (widget.controller.toolbar != null) {
               widget.controller.toolbar!.updateToolbar(data);
             }
