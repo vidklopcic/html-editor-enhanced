@@ -182,6 +182,139 @@ class _HtmlEditorWidgetWebState extends State<HtmlEditorWidget> {
     }
     var summernoteScripts = """
       <script type="text/javascript">
+    function unwrapSide(closest, startNode, fromStart, cNode) {
+        console.log('unwrap', closest, startNode, fromStart, cNode);
+        let content = (cNode || closest).contents();
+        let wrapWith = closest.clone();
+        wrapWith[0].innerHTML = '';
+
+        if (!fromStart) {
+            content = \$(content.get().reverse());
+        }
+
+        content.each(function () {
+            if (this === startNode[0]) return false;
+            console.log('content', this);
+            let node = \$(this);
+            if (!node.has(startNode).length) {
+                node.wrap(wrapWith);
+                return true;
+            }
+            unwrapSide(closest, startNode, fromStart, node);
+        });
+    }
+
+    function wrapSelection(tag, attr_map) {
+        let {anchorNode, anchorOffset, focusNode, focusOffset} = document.getSelection();
+
+        // split words if textNode has more than one word
+        let words = anchorNode.textContent.split(' ');
+        let offset = 0;
+        if (words.length > 1) {
+            for (let word of words) {
+                if (anchorOffset - offset - word.length <= 0) {
+                    let spanA = document.createElement('tmp-element-block');
+                    let spanB = document.createElement('tmp-element-block');
+                    spanA.innerHTML = anchorNode.textContent.substr(0, offset);
+                    spanB.innerHTML = anchorNode.textContent.substr(offset);
+                    anchorNode.parentNode.insertBefore(spanA, anchorNode);
+                    anchorNode.parentNode.insertBefore(spanB, anchorNode);
+                    anchorNode.parentNode.removeChild(anchorNode);
+                    anchorNode = spanB;
+                    break;
+                }
+                offset += word.length;
+            }
+        }
+        words = focusNode.textContent.split(' ');
+        if (words.length > 1) {
+            for (let word of words) {
+                if (focusOffset - offset - word.length <= 0) {
+                    let spanA = document.createElement('tmp-element-block');
+                    let spanB = document.createElement('tmp-element-block');
+                    spanA.innerHTML = focusNode.textContent.substr(0, offset);
+                    spanB.innerHTML = focusNode.textContent.substr(offset);
+                    focusNode.parentNode.insertBefore(spanA, focusNode);
+                    focusNode.parentNode.insertBefore(spanB, focusNode);
+                    focusNode.parentNode.removeChild(focusNode);
+                    focusNode = spanA;
+                    break;
+                }
+                offset += word.length;
+            }
+        }
+
+        // determine node ordering
+        let startNode, endNode;
+        if (focusNode.compareDocumentPosition(anchorNode) & Node.DOCUMENT_POSITION_FOLLOWING) {
+            startNode = focusNode;
+            endNode = anchorNode;
+        } else {
+            startNode = anchorNode;
+            endNode = focusNode;
+        }
+
+        // wrap
+        wrap(\$(startNode), \$(endNode), tag, attr_map);
+
+        // cleanup
+        \$('tmp-element-block').contents().unwrap();
+    }
+
+    function wrap(startNode, endNode, tag, attr_map) {
+        let closest = startNode.closest(tag);
+        if (closest.length) {
+            // unwrap start
+            unwrapSide(closest, startNode, true);
+            if (!closest.has(endNode).length) {
+                closest.contents().unwrap();
+            }
+        }
+        closest = endNode.closest(tag);
+        if (closest.length) {
+            // unwrap end
+            unwrapSide(closest, endNode, false);
+            closest.contents().unwrap();
+        }
+
+        let cNode = startNode;
+        let selectionSet = [];
+        let _wrap = () => {
+            if (cNode[0] === endNode[0]) {
+                selectionSet.push(cNode[0]);
+                return;
+            }
+            if (cNode.has(endNode).length) {
+                cNode = \$(cNode[0].firstChild);
+                console.log(cNode[0])
+                _wrap();
+            } else {
+                //if (cNode[0].nodeType !== Node.TEXT_NODE || !/\\S/.test(this.nodeValue)) {
+                selectionSet.push(cNode[0]);
+                //}
+                let nextNode = \$(cNode[0].nextSibling);
+                console.log('nextNode', nextNode[0]);
+                while (!nextNode.length) {
+                    cNode = cNode.parent();
+                    nextNode = \$(cNode[0].nextSibling);
+                    console.log('nextNodeNew', nextNode[0]);
+                }
+                cNode = nextNode;
+                _wrap();
+            }
+        }
+        if (startNode[0] !== endNode[0]) {
+            _wrap();
+        }
+
+        let wrapWith = \$(document.createElement(tag));
+        wrapWith.attr(attr_map);
+        console.log(selectionSet);
+        selectionSet = \$(selectionSet);
+        selectionSet = selectionSet.wrap(wrapWith).parent();
+        selectionSet.find(tag).contents().unwrap();
+    }
+      
         \$(document).ready(function () {
           \$('#summernote-2').summernote({
             placeholder: "${widget.htmlEditorOptions.hint}",
@@ -222,6 +355,11 @@ class _HtmlEditorWidgetWebState extends State<HtmlEditorWidget> {
                   }
                 }
                 window.parent.postMessage(JSON.stringify({"type": "toDart: getFirstParentWithTag", "exists": !!closestNode[0], 'attrs': attrs}), "*");
+              }
+              if (data["type"].includes("wrap")) {
+                let wrap = data['wrap'];
+                
+                // todo
               }
               if (data["type"].includes("getHeight")) {
                 var height = document.body.scrollHeight;
