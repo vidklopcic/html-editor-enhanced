@@ -183,7 +183,6 @@ class _HtmlEditorWidgetWebState extends State<HtmlEditorWidget> {
     var summernoteScripts = """
       <script type="text/javascript">
     function unwrapSide(closest, startNode, fromStart, cNode) {
-        console.log('unwrap', closest, startNode, fromStart, cNode);
         let content = (cNode || closest).contents();
         let wrapWith = closest.clone();
         wrapWith[0].innerHTML = '';
@@ -194,7 +193,6 @@ class _HtmlEditorWidgetWebState extends State<HtmlEditorWidget> {
 
         content.each(function () {
             if (this === startNode[0]) return false;
-            console.log('content', this);
             let node = \$(this);
             if (!node.has(startNode).length) {
                 node.wrap(wrapWith);
@@ -286,18 +284,15 @@ class _HtmlEditorWidgetWebState extends State<HtmlEditorWidget> {
             }
             if (cNode.has(endNode).length) {
                 cNode = \$(cNode[0].firstChild);
-                console.log(cNode[0])
                 _wrap();
             } else {
                 //if (cNode[0].nodeType !== Node.TEXT_NODE || !/\\S/.test(this.nodeValue)) {
                 selectionSet.push(cNode[0]);
                 //}
                 let nextNode = \$(cNode[0].nextSibling);
-                console.log('nextNode', nextNode[0]);
                 while (!nextNode.length) {
                     cNode = cNode.parent();
                     nextNode = \$(cNode[0].nextSibling);
-                    console.log('nextNodeNew', nextNode[0]);
                 }
                 cNode = nextNode;
                 _wrap();
@@ -309,7 +304,6 @@ class _HtmlEditorWidgetWebState extends State<HtmlEditorWidget> {
 
         let wrapWith = \$(document.createElement(tag));
         wrapWith.attr(attr_map);
-        console.log(selectionSet);
         selectionSet = \$(selectionSet);
         selectionSet = selectionSet.wrap(wrapWith).parent();
         selectionSet.find(tag).contents().unwrap();
