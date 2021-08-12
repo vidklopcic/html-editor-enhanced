@@ -15,7 +15,9 @@ class HtmlEditor extends StatelessWidget {
     this.htmlToolbarOptions = const HtmlToolbarOptions(),
     this.otherOptions = const OtherOptions(),
     this.plugins = const [],
-  }) : super(key: key);
+  }) : editorKey = key;
+
+  final Key? editorKey;
 
   /// The controller that is passed to the widget, which allows multiple [HtmlEditor]
   /// widgets to be used on the same page independently.
@@ -41,7 +43,7 @@ class HtmlEditor extends StatelessWidget {
   Widget build(BuildContext context) {
     if (kIsWeb) {
       return HtmlEditorWidget(
-        key: key,
+        key: editorKey,
         controller: controller,
         callbacks: callbacks,
         plugins: plugins,
