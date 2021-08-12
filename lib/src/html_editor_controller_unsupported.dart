@@ -154,4 +154,9 @@ class HtmlEditorController {
 
   Future<HtmlElementInfo> getFirstParentWithTag(String tag) =>
       Future.value(HtmlElementInfo());
+
+  void wrapSelection(String tag, Map<String, dynamic> attributes) =>
+      Future.value(HtmlElementInfo());
+
+
 }

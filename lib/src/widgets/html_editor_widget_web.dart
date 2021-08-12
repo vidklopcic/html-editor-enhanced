@@ -350,10 +350,8 @@ class _HtmlEditorWidgetWebState extends State<HtmlEditorWidget> {
                 }
                 window.parent.postMessage(JSON.stringify({"type": "toDart: getFirstParentWithTag", "exists": !!closestNode[0], 'attrs': attrs}), "*");
               }
-              if (data["type"].includes("wrap")) {
-                let wrap = data['wrap'];
-                
-                // todo
+              if (data["type"].includes("wrapSelection")) {
+                wrapSelection(data['tag'], data['attributes']);
               }
               if (data["type"].includes("getHeight")) {
                 var height = document.body.scrollHeight;

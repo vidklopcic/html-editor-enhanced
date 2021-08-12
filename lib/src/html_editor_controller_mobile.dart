@@ -157,8 +157,12 @@ class HtmlEditorController extends unsupported.HtmlEditorController {
         source: "\$('#summernote-2').summernote('insertText', '$text');");
   }
 
-  /// Insert text at the end of the current HTML content in the editor
-  /// Note: This method should only be used for plaintext strings
+  @override
+  void wrapSelection(String tag, Map<String, dynamic> attributes) {
+    _evaluateJavascript(
+        source: 'wrapSelection($tag, ${json.encode(attributes)});');
+  }
+
   @override
   Future<HtmlElementInfo> getFirstParentWithTag(String tag) async {
     final responseString = _evaluateJavascript(

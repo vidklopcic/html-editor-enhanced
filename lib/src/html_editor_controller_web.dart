@@ -67,6 +67,14 @@ class HtmlEditorController extends unsupported.HtmlEditorController {
     );
   }
 
+  /// Gets the text from the editor and returns it as a [String].
+  @override
+  void wrapSelection(String tag, Map<String, dynamic> attributes) {
+    _evaluateJavascriptWeb(data: {'type': 'toIframe: wrapSelection', 'tag': tag, 'attributes': attributes});
+  }
+
+
+
   @override
   Future<String> getText() async {
     _evaluateJavascriptWeb(data: {'type': 'toIframe: getText'});
